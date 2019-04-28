@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import Modal from 'react-modal';
 import ShortSell from "../redux/actions/ShortSell"
-
+import RenderLocates from "./RenderLocates"
 
 const customStyles = {
     overlay: {
@@ -13,18 +13,18 @@ const customStyles = {
         bottom: 30,
         backgroundColor: 'rgba(255, 255, 255, 0.75)'
     },
-  };
+};
 Modal.setAppElement(document.getElementById('root'));
 
 class CoRow extends Component {
     constructor() {
         super();
         this.state = {
-          locateModalIsOpen: false,
-          shortModalIsOpen: false,
-          expiry:100,
-          fee:100000000000,
-
+            locateModalIsOpen: false,
+            shortModalIsOpen: false,
+            expiry: 5600000,
+            fee: 100000000000,
+            
         };
     }
 
@@ -41,69 +41,71 @@ class CoRow extends Component {
             shortModalIsOpen: true,
             locateModalIsOpen: false,
         });
+        this.props.getLocates(this.props.ticker)
     }
     closeModals = () => {
         this.setState({
             ...this.state,
             locateModalIsOpen: false,
-            shortModalIsOpen:false,
+            shortModalIsOpen: false,
         });
     }
 
+   
 
-    
-    owned = () =>{
+
+    owned = () => {
         return parseInt(this.props.holding) > 0
     }
-    sellBtn = () =>{
-        if (this.owned()){
+    sellBtn = () => {
+        if (this.owned()) {
             return <button>Sell</button>
         }
     }
-    locateBtn = () =>{
-        if (this.owned()){
-            return <button 
+    locateBtn = () => {
+        if (this.owned()) {
+            return <button
                 className="btn btn-success"
                 onClick={this.openLocateModal}
             >Lend Locate</button>
         }
     }
-    shortBtn = () =>{
-       return <button 
+    shortBtn = () => {
+        return <button
             className="btn btn-danger"
             onClick={this.openShortModal}
-        >Rent Locate</button>
+        >Find Locate</button>
     }
 
     handleExpiryChange = (event) => {
         this.setState({
             ...this.state,
-            expiry:event.target.value
+            expiry: event.target.value
         })
     }
     handleFeeChange = (event) => {
         //use bigNumber here
         this.setState({
             ...this.state,
-            fee:event.target.value
+            fee: event.target.value
         })
     }
 
     render() {
         return (
-           <div>
-               <Modal
+            <div>
+                <Modal
                     isOpen={this.state.locateModalIsOpen}
                     style={customStyles}
                 >
                     <strong>OFFER LOCATE</strong>
-                    <br/>Ticker: {this.props.ticker}
-                    <br/>Expiry Block Number: <input type="text" value={this.state.expiry} onChange={(event)=>this.handleExpiryChange(event)}/>
-                    <br/>Locate Fee: <input type="text" value={this.state.fee} onChange={(event)=>this.handleFeeChange(event)}/>
-                    <br/>Amount: {this.props.holding}
-                    <br/>My Address: {this.props.address}
-                    <br/><button
-                        onClick={()=>{
+                    <br />Ticker: {this.props.ticker}
+                    <br />Expiry Block Number: <input type="text" value={this.state.expiry} onChange={(event) => this.handleExpiryChange(event)} />
+                    <br />Locate Fee: <input type="text" value={this.state.fee} onChange={(event) => this.handleFeeChange(event)} />
+                    <br />Amount: {this.props.holding}
+                    <br />My Address: {this.props.address}
+                    <br /><button
+                        onClick={() => {
                             this.props.offerLocate(
                                 this.props.ticker,
                                 this.props.address,
@@ -114,7 +116,7 @@ class CoRow extends Component {
                         }}
                     >Submit</button>
 
-                    <br/><br/><br/> <button onClick={this.closeModals}>Close</button>
+                    <br /><br /><br /> <button onClick={this.closeModals}>Close</button>
                 </Modal>
 
 
@@ -123,11 +125,17 @@ class CoRow extends Component {
                     style={customStyles}
                 >
                     <strong>BORROW TO SHORT</strong>
-                    <br/>Ticker: {this.props.ticker}
-                    <br/>Current Offers:
+                    <br />Ticker: {this.props.ticker}
+                    <br /><RenderLocates locates={this.props.locates}/>
+                    <button onClick={()=>{
+                            this.props.purchaseLocate(
+                                this.props.ticker,
+                                this.props.locates
+                        )}
+                    }>Purchase Locate</button>
 
-                    <br/><br/><br/> <button onClick={this.closeModals}>Close</button>
-                    
+                    <br /> <button onClick={this.closeModals}>Close</button>
+
                 </Modal>
 
 
@@ -135,7 +143,7 @@ class CoRow extends Component {
 
 
 
-                <div className="row line-below">               
+                <div className="row line-below">
                     <div className="col-4 col-solid">{this.props.name}</div>
                     <div className="col-1 col-solid">{this.props.ticker}</div>
                     <div className="col-1 col-solid">{this.props.price}</div>
@@ -147,9 +155,9 @@ class CoRow extends Component {
                     <div className="col-1">{this.locateBtn()}</div>
                 </div>
 
-           </div>
-            
-            
+            </div>
+
+
         );
     }
 }
@@ -158,13 +166,20 @@ class CoRow extends Component {
 function mapStateToProps(state) {
     return {
         address: state.LoginDetails.addressSignedIn,
+        locates:state.ShortSell.locates
     }
 }
 
 function mapDispatchToProps(dispatch) {
     return {
-        offerLocate: (ticker,owner,weiFee,expiryBN,amount) => {
-            dispatch(ShortSell.offerLocate(dispatch, ticker,owner,weiFee,expiryBN,amount))
+        offerLocate: (ticker, owner, weiFee, expiryBN, amount) => {
+            dispatch(ShortSell.offerLocate(dispatch, ticker, owner, weiFee, expiryBN, amount))
+        },
+        getLocates: (ticker) => {
+            dispatch(ShortSell.getLocates(dispatch, ticker))
+        },
+        purchaseLocate:(ticker, locate) => {
+            dispatch(ShortSell.purchaseLocate(dispatch,ticker, locate))
         },
     }
 }
