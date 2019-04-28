@@ -20,23 +20,33 @@ class CoRow extends Component {
     constructor() {
         super();
         this.state = {
-          modalIsOpen: false,
+          locateModalIsOpen: false,
+          shortModalIsOpen: false,
           expiry:100,
           fee:100000000000,
 
         };
     }
 
-    openModal = () => {
+    openLocateModal = () => {
         this.setState({
             ...this.state,
-            modalIsOpen: true
+            locateModalIsOpen: true,
+            shortModalIsOpen: false,
         });
     }
-    closeModal = () => {
+    openShortModal = () => {
         this.setState({
             ...this.state,
-            modalIsOpen: false
+            shortModalIsOpen: true,
+            locateModalIsOpen: false,
+        });
+    }
+    closeModals = () => {
+        this.setState({
+            ...this.state,
+            locateModalIsOpen: false,
+            shortModalIsOpen:false,
         });
     }
 
@@ -54,9 +64,15 @@ class CoRow extends Component {
         if (this.owned()){
             return <button 
                 className="btn btn-success"
-                onClick={this.openModal}
-            >Locate</button>
+                onClick={this.openLocateModal}
+            >Lend Locate</button>
         }
+    }
+    shortBtn = () =>{
+       return <button 
+            className="btn btn-danger"
+            onClick={this.openShortModal}
+        >Rent Locate</button>
     }
 
     handleExpiryChange = (event) => {
@@ -77,7 +93,7 @@ class CoRow extends Component {
         return (
            <div>
                <Modal
-                    isOpen={this.state.modalIsOpen}
+                    isOpen={this.state.locateModalIsOpen}
                     style={customStyles}
                 >
                     <strong>OFFER LOCATE</strong>
@@ -98,11 +114,24 @@ class CoRow extends Component {
                         }}
                     >Submit</button>
 
-
-offerLocate: (ticker,owner,ethFee,expiryBN,amount)
-
-                    <br/><br/><br/> <button onClick={this.closeModal}>Close</button>
+                    <br/><br/><br/> <button onClick={this.closeModals}>Close</button>
                 </Modal>
+
+
+                <Modal
+                    isOpen={this.state.shortModalIsOpen}
+                    style={customStyles}
+                >
+                    <strong>BORROW TO SHORT</strong>
+                    <br/>Ticker: {this.props.ticker}
+                    <br/>Current Offers:
+
+                    <br/><br/><br/> <button onClick={this.closeModals}>Close</button>
+                    
+                </Modal>
+
+
+
 
 
 
@@ -114,7 +143,7 @@ offerLocate: (ticker,owner,ethFee,expiryBN,amount)
                     <div className="col-1 col-solid">{this.props.holding}</div>
                     <div className="col-1 col-solid"><button>Buy</button></div>
                     <div className="col-1 col-solid">{this.sellBtn()}</div>
-                    <div className="col-1 col-solid"><button className="btn btn-danger">ShortSell</button></div>
+                    <div className="col-1 col-solid">{this.shortBtn()}</div>
                     <div className="col-1">{this.locateBtn()}</div>
                 </div>
 
