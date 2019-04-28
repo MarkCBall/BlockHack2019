@@ -27,8 +27,9 @@ contract ERC20{
 
     event Transfer(address indexed from, address indexed to, uint tokens);
     event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
-    //original code in next Event
-    event LocateFound(address indexed owner, address indexed borrower, uint amount)
+    //original code in next two events
+    event LocateFound(address indexed owner, address indexed borrower, uint expiryBN, uint amount);
+    event LocateClosed(address indexed owner, address indexed borrower, uint expiryBN, uint amount);
 
     address public owner;
     string public symbol;
@@ -39,7 +40,7 @@ contract ERC20{
     mapping(address => mapping(address => uint)) public allowed;
 
     //original code in next mapping
-    mapping (address => mapping(address=>uint)) public located;
+    mapping (address => mapping(address=>mapping (uint => uint))) public located;
 
     constructor(uint supply) public {
         owner = msg.sender;
@@ -83,31 +84,35 @@ contract ERC20{
 
 //    mapping (address => mapping(address=>uint)) public located;
 
-    function sellShort(uint8 v, bytes32 r, bytes32 s, address owner, uint ethFee, uint expiryBN, uint amount){
+    function takeLocate(uint8 v, bytes32 r, bytes32 s, address payable _owner, uint ethFee, uint expiryBN, uint amount) public{
+        require ( balances[owner] >= amount );
+        
         bytes32 DataHash = keccak256(abi.encodePacked(owner, ethFee, expiryBN, amount));
         address calcAddr = addrFromHashAndSig(DataHash, v,r,s);
         //the owner of the token must have approved this transaction
-        require ( owner == calcAddr );
+        require ( _owner == calcAddr );
         //the locate recipient must pay the owner up front
-        require ( owner.transfer(ethFee) );
-        located[owner][msg.sender] = amount;
-
+        _owner.transfer(ethFee);
+        located[_owner][msg.sender][expiryBN] = located[_owner][msg.sender][expiryBN].add(amount);
         //transfer the tokens
         balances[owner] = balances[owner].sub(amount);
-        allowed[owner][msg.sender] = allowed[from][msg.sender].add(amount);
         balances[msg.sender] = balances[msg.sender].add(amount);
-        emit LocateFound(owner, msg.sender, amount);
-        
+        emit LocateFound(owner, msg.sender, expiryBN, amount);
 
+    // event LocateClosed(address indexed owner, address indexed borrower, uint expiryBN, uint amount);
     }
 
-    function swapShort(uint8 v, bytes32 r, bytes32 s, address owner, uint ethFee, uint expiryBN, uint amount, address rebateAddress,){
-        bytes32 DataHash = keccak256(abi.encodePacked(owner, ethFee, expiryBN, amount, rebateAddress));
-        address calcAddr = addrFromHashAndSig(DataHash, v,r,s);
-        require (owner == calcAddr) 
+    function takeAndRebateLocate(uint8 v, bytes32 r, bytes32 s, address payable _owner, uint ethFee, uint expiryBN, uint amount, address rebateAddress, uint rebateExpiryBN) public{
+        takeLocate(v, r, s, _owner, ethFee, expiryBN, amount);
+        rebateLocate(rebateAddress, rebateExpiryBN);
     }
-    function rebateShort(owner,amount){
 
+    function rebateLocate(address _owner, uint expiryBN) public {
+        uint amount = located[_owner][msg.sender][expiryBN];
+        require (balances[msg.sender] >= amount );
+        balances[msg.sender] = balances[msg.sender].sub(amount);
+        located[_owner][msg.sender][expiryBN] = located[_owner][msg.sender][expiryBN].sub(amount);
+        balances[_owner] = balances[_owner].add(amount);
     }
 
     function addrFromHashAndSig(bytes32 DataHash, uint8 v, bytes32 r, bytes32 s) private pure returns(address) {
