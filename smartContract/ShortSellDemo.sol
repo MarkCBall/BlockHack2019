@@ -81,25 +81,16 @@ contract ERC20{
     }
 //END OF COPIED CODE FROM WIKIPEDIA
 
-
-//    mapping (address => mapping(address=>uint)) public located;
-
     function takeLocate(uint8 v, bytes32 r, bytes32 s, address payable _owner, uint ethFee, uint expiryBN, uint amount) public{
         require ( balances[owner] >= amount );
-        
-        bytes32 DataHash = keccak256(abi.encodePacked(owner, ethFee, expiryBN, amount));
+        bytes32 DataHash = keccak256(abi.encodePacked(_owner, ethFee, expiryBN, amount));
         address calcAddr = addrFromHashAndSig(DataHash, v,r,s);
-        //the owner of the token must have approved this transaction
         require ( _owner == calcAddr );
-        //the locate recipient must pay the owner up front
         _owner.transfer(ethFee);
         located[_owner][msg.sender][expiryBN] = located[_owner][msg.sender][expiryBN].add(amount);
-        //transfer the tokens
         balances[owner] = balances[owner].sub(amount);
         balances[msg.sender] = balances[msg.sender].add(amount);
         emit LocateFound(owner, msg.sender, expiryBN, amount);
-
-    // event LocateClosed(address indexed owner, address indexed borrower, uint expiryBN, uint amount);
     }
 
     function takeAndRebateLocate(uint8 v, bytes32 r, bytes32 s, address payable _owner, uint ethFee, uint expiryBN, uint amount, address rebateAddress, uint rebateExpiryBN) public{

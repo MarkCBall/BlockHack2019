@@ -6,6 +6,7 @@ import { ethers } from "ethers";
 import { provider } from "../constants/Other";
 
 import { GET_LOCATES } from "../constants/ActionTypes"
+import { BigNumber } from "ethers/utils";
 
 export default {
 
@@ -13,7 +14,7 @@ export default {
         return async (dispatch, getState) => {
             //calculate the signature
             let sigTypes = ['address', 'uint', 'uint', 'uint']
-            let sigValues = [owner, weiFee, expiryBN, amount]
+            let sigValues = [owner, new BigNumber(weiFee), new BigNumber(expiryBN), new BigNumber(amount)]
             let gameHash = ethers.utils.solidityKeccak256(sigTypes, sigValues);
             let arrayifiedGameHash = ethers.utils.arrayify(gameHash)
             let wallet = new ethers.Wallet(getState().LoginDetails.privKey)
@@ -57,6 +58,16 @@ export default {
         return async (dispatch, getState) => {
             let activeWallet = new ethers.Wallet(getState().LoginDetails.privKey).connect(provider)
             let callableContract = new ethers.Contract(smartContractAddr, smartContractAbi, activeWallet)
+            console.log(
+                locate.sig.v,
+                locate.sig.r,
+                locate.sig.s,
+                locate[0],
+                locate[1],
+                locate[2],
+                locate[3]
+            )
+
             await callableContract.takeLocate(
                 locate.sig.v,
                 locate.sig.r,
@@ -66,6 +77,7 @@ export default {
                 locate[2],
                 locate[3]
             )
+            
         }
     }
 }
