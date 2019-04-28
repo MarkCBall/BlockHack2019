@@ -81,7 +81,7 @@ contract ERC20{
     }
 //END OF COPIED CODE FROM WIKIPEDIA
 
-    function takeLocate(uint8 v, bytes32 r, bytes32 s, address payable _owner, uint ethFee, uint expiryBN, uint amount) public{
+    function takeLocate(uint8 v, bytes32 r, bytes32 s, address payable _owner, uint ethFee, uint expiryBN, uint amount) public payable{
         require ( balances[owner] >= amount );
         bytes32 DataHash = keccak256(abi.encodePacked(_owner, ethFee, expiryBN, amount));
         address calcAddr = addrFromHashAndSig(DataHash, v,r,s);
