@@ -7,11 +7,11 @@ var db = level('./db', {valueEncoding: 'json'})
 // Sign and post or update locate offering
 router.post('/PostOffering', async function(req, res, next) {
     db.put(req.headers.ticker,req.body)
-    res.send();
+    res.send("success");
 })
 
 // Get locate offerings
-router.post('/GetOfferings', async function(req, res, next) {
+router.get('/GetOfferings', async function(req, res, next) {
     db.get(req.headers.ticker)
     .then(offering => {
         res.send(offering)
@@ -20,7 +20,7 @@ router.post('/GetOfferings', async function(req, res, next) {
         console.log("ticker not found")
         res.send({});
     })
-    res.send();
+    // res.send();
 })
 module.exports = router;
 
