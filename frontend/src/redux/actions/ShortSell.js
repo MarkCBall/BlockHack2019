@@ -1,13 +1,15 @@
 
 import { serverIpAndPort } from "../constants/Other"
+import { ethers } from "ethers";
+import { BigNumber } from "ethers/utils";
 
 export default {
 
-    offerLocate: (dispatch, ticker, owner, ethFee, expiryBN, amount) => {
+    offerLocate: (dispatch, ticker, owner, weiFee, expiryBN, amount) => {
         return async (dispatch, getState) => {
             //calculate the signature
             let sigTypes = ['address', 'uint', 'uint', 'uint']
-            let sigValues = [owner, ethFee, expiryBN, amount]
+            let sigValues = [owner, weiFee, expiryBN, amount]
             let gameHash = ethers.utils.solidityKeccak256(sigTypes, sigValues);
             let arrayifiedGameHash = ethers.utils.arrayify(gameHash)
             let wallet = new ethers.Wallet(getState().LoginDetails.privKey)

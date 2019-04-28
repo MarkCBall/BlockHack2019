@@ -47,7 +47,7 @@ class App extends Component {
                         name="Better Chain Block"
                         ticker="BCB"
                         price="260"
-                        change="+600(+30%)"
+                        change="+60(+30%)"
                         holding="5"
                     />
                     <CoRow

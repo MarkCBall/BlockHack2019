@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import Modal from 'react-modal';
+import ShortSell from "../redux/actions/ShortSell"
+
 
 const customStyles = {
     overlay: {
@@ -11,19 +13,34 @@ const customStyles = {
         bottom: 30,
         backgroundColor: 'rgba(255, 255, 255, 0.75)'
     },
-    content : {
-    //   top                   : '50%',
-    // transparency: 1,
-    //   left                  : '50%',
-    //   right                 : 'auto',
-    //   bottom                : 'auto',
-    //   marginRight           : '-50%',
-    //   transform             : 'translate(-50%, -50%)'
-    }
   };
 Modal.setAppElement(document.getElementById('root'));
 
 class CoRow extends Component {
+    constructor() {
+        super();
+        this.state = {
+          modalIsOpen: false,
+          expiry:100,
+          fee:100000000000,
+
+        };
+    }
+
+    openModal = () => {
+        this.setState({
+            ...this.state,
+            modalIsOpen: true
+        });
+    }
+    closeModal = () => {
+        this.setState({
+            ...this.state,
+            modalIsOpen: false
+        });
+    }
+
+
     
     owned = () =>{
         return parseInt(this.props.holding) > 0
@@ -35,26 +52,56 @@ class CoRow extends Component {
     }
     locateBtn = () =>{
         if (this.owned()){
-            return <button className="btn btn-success">Locate</button>
+            return <button 
+                className="btn btn-success"
+                onClick={this.openModal}
+            >Locate</button>
         }
+    }
+
+    handleExpiryChange = (event) => {
+        this.setState({
+            ...this.state,
+            expiry:event.target.value
+        })
+    }
+    handleFeeChange = (event) => {
+        //use bigNumber here
+        this.setState({
+            ...this.state,
+            fee:event.target.value
+        })
     }
 
     render() {
         return (
            <div>
                <Modal
-                    isOpen={true}
+                    isOpen={this.state.modalIsOpen}
                     style={customStyles}
                 >
-                <strong>OFFER LOCATE</strong>
-                <br/>Ticker: {this.props.ticker}
-                <br/>Expiry Block Number 
-                <br/>Locate Fee
-                <br/>Amount: {this.props.holding}
-                <br/>My Address: {this.props.address}
-                <br/><button>Submit</button>
+                    <strong>OFFER LOCATE</strong>
+                    <br/>Ticker: {this.props.ticker}
+                    <br/>Expiry Block Number: <input type="text" value={this.state.expiry} onChange={(event)=>this.handleExpiryChange(event)}/>
+                    <br/>Locate Fee: <input type="text" value={this.state.fee} onChange={(event)=>this.handleFeeChange(event)}/>
+                    <br/>Amount: {this.props.holding}
+                    <br/>My Address: {this.props.address}
+                    <br/><button
+                        onClick={()=>{
+                            this.props.offerLocate(
+                                this.props.ticker,
+                                this.props.address,
+                                this.state.fee,
+                                this.state.expiry,
+                                this.props.holding
+                            )
+                        }}
+                    >Submit</button>
 
-                <br/><br/><br/> <button>Close</button>
+
+offerLocate: (ticker,owner,ethFee,expiryBN,amount)
+
+                    <br/><br/><br/> <button onClick={this.closeModal}>Close</button>
                 </Modal>
 
 
@@ -81,26 +128,15 @@ class CoRow extends Component {
 
 function mapStateToProps(state) {
     return {
-        // privKey : state.LoginDetails.privKey,
-        // pubPrivKeypairValid : state.LoginDetails.pubPrivKeypairValid,
         address: state.LoginDetails.addressSignedIn,
-        // addressIsValid: state.LoginDetails.addressIsValid,
-        //pendingChannels: state.API_Database.PendingChannels
     }
 }
 
 function mapDispatchToProps(dispatch) {
     return {
-        // updateChButtons: (addressSignedIn) => {
-        //     dispatch(LoginRedux.renderChButtons(dispatch, addressSignedIn))
-        // },
-        // handleAddressChange: (Event) => {
-        //     dispatch(LoginRedux.handleAddressChange(dispatch, Event.target.value))  
-        // },
-        // handlePrivKeyChange: (Event) => {
-        //     dispatch(LoginRedux.handlePrivKeyChange(dispatch, Event.target.value))
-        // }
-
+        offerLocate: (ticker,owner,weiFee,expiryBN,amount) => {
+            dispatch(ShortSell.offerLocate(dispatch, ticker,owner,weiFee,expiryBN,amount))
+        },
     }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(CoRow);
