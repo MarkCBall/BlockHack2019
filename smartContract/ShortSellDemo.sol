@@ -121,3 +121,5 @@ contract ERC20{
         return ecrecover(prefixedHash, v, r, s);
     }
 }
+
+//deployed on ropsten at 0x50ee5832dee4d66d71d80b9e4116bd90a48449c5
